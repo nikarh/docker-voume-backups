@@ -9,6 +9,9 @@ permissions:
   contents: read
   packages: write
 
+env:
+  IMAGE_NAME: ghcr.io/nikarh/docker-volume-backups
+
 jobs:
   lint-test-build:
     runs-on: ubuntu-latest
@@ -80,8 +83,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:main-${{ matrix.arch }}
-            ghcr.io/${{ github.repository }}:sha-${{ github.sha }}-${{ matrix.arch }}
+            ${{ env.IMAGE_NAME }}:main-${{ matrix.arch }}
+            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}-${{ matrix.arch }}
 
   publish-main-manifest:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -101,13 +104,13 @@ jobs:
       - name: Publish manifest
         run: |
           docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository }}:main \
-            ghcr.io/${{ github.repository }}:main-amd64 \
-            ghcr.io/${{ github.repository }}:main-arm64
+            -t "$IMAGE_NAME:main" \
+            "$IMAGE_NAME:main-amd64" \
+            "$IMAGE_NAME:main-arm64"
           docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository }}:sha-${{ github.sha }} \
-            ghcr.io/${{ github.repository }}:sha-${{ github.sha }}-amd64 \
-            ghcr.io/${{ github.repository }}:sha-${{ github.sha }}-arm64
+            -t "$IMAGE_NAME:sha-${{ github.sha }}" \
+            "$IMAGE_NAME:sha-${{ github.sha }}-amd64" \
+            "$IMAGE_NAME:sha-${{ github.sha }}-arm64"
 
   publish-dev-image:
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
@@ -134,5 +137,5 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:dev
-            ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:dev
+            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}

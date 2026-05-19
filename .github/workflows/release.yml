@@ -17,6 +17,9 @@ permissions:
   contents: write
   packages: write
 
+env:
+  IMAGE_NAME: ghcr.io/nikarh/docker-volume-backups
+
 jobs:
   prepare-release:
     runs-on: ubuntu-latest
@@ -120,12 +123,12 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:v${{ needs.prepare-release.outputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.semver_minor }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.semver_major }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository }}:stable-${{ matrix.arch }}
-            ghcr.io/${{ github.repository }}:latest-${{ matrix.arch }}
+            ${{ env.IMAGE_NAME }}:v${{ needs.prepare-release.outputs.version }}-${{ matrix.arch }}
+            ${{ env.IMAGE_NAME }}:${{ needs.prepare-release.outputs.version }}-${{ matrix.arch }}
+            ${{ env.IMAGE_NAME }}:${{ needs.prepare-release.outputs.semver_minor }}-${{ matrix.arch }}
+            ${{ env.IMAGE_NAME }}:${{ needs.prepare-release.outputs.semver_major }}-${{ matrix.arch }}
+            ${{ env.IMAGE_NAME }}:stable-${{ matrix.arch }}
+            ${{ env.IMAGE_NAME }}:latest-${{ matrix.arch }}
 
   publish-release-manifest:
     needs: [prepare-release, build-release-image]
@@ -144,29 +147,29 @@ jobs:
       - name: Publish manifests
         run: |
           docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository }}:v${{ needs.prepare-release.outputs.version }} \
-            ghcr.io/${{ github.repository }}:v${{ needs.prepare-release.outputs.version }}-amd64 \
-            ghcr.io/${{ github.repository }}:v${{ needs.prepare-release.outputs.version }}-arm64
+            -t "$IMAGE_NAME:v${{ needs.prepare-release.outputs.version }}" \
+            "$IMAGE_NAME:v${{ needs.prepare-release.outputs.version }}-amd64" \
+            "$IMAGE_NAME:v${{ needs.prepare-release.outputs.version }}-arm64"
           docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.version }} \
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.version }}-amd64 \
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.version }}-arm64
+            -t "$IMAGE_NAME:${{ needs.prepare-release.outputs.version }}" \
+            "$IMAGE_NAME:${{ needs.prepare-release.outputs.version }}-amd64" \
+            "$IMAGE_NAME:${{ needs.prepare-release.outputs.version }}-arm64"
           docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.semver_minor }} \
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.semver_minor }}-amd64 \
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.semver_minor }}-arm64
+            -t "$IMAGE_NAME:${{ needs.prepare-release.outputs.semver_minor }}" \
+            "$IMAGE_NAME:${{ needs.prepare-release.outputs.semver_minor }}-amd64" \
+            "$IMAGE_NAME:${{ needs.prepare-release.outputs.semver_minor }}-arm64"
           docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.semver_major }} \
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.semver_major }}-amd64 \
-            ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.semver_major }}-arm64
+            -t "$IMAGE_NAME:${{ needs.prepare-release.outputs.semver_major }}" \
+            "$IMAGE_NAME:${{ needs.prepare-release.outputs.semver_major }}-amd64" \
+            "$IMAGE_NAME:${{ needs.prepare-release.outputs.semver_major }}-arm64"
           docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository }}:stable \
-            ghcr.io/${{ github.repository }}:stable-amd64 \
-            ghcr.io/${{ github.repository }}:stable-arm64
+            -t "$IMAGE_NAME:stable" \
+            "$IMAGE_NAME:stable-amd64" \
+            "$IMAGE_NAME:stable-arm64"
           docker buildx imagetools create \
-            -t ghcr.io/${{ github.repository }}:latest \
-            ghcr.io/${{ github.repository }}:latest-amd64 \
-            ghcr.io/${{ github.repository }}:latest-arm64
+            -t "$IMAGE_NAME:latest" \
+            "$IMAGE_NAME:latest-amd64" \
+            "$IMAGE_NAME:latest-arm64"
 
   create-github-release:
     needs: [prepare-release, publish-release-manifest]
