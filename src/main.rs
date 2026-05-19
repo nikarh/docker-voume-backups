@@ -123,6 +123,10 @@ enum Command {
         #[arg(long)]
         archive: Option<String>,
     },
+    RestoreAll {
+        #[arg(long)]
+        archive: Option<String>,
+    },
     BackupAll,
     Cleanup,
     Run,
@@ -349,6 +353,10 @@ fn main() -> Result<()> {
                 archive.as_deref(),
             )?;
         }
+        Command::RestoreAll { archive } => {
+            let mut storage = build_storage(&cli)?;
+            restore_all(&cli.volumes_root, storage.as_mut(), archive.as_deref())?;
+        }
         Command::BackupAll => {
             let mut storage = build_storage(&cli)?;
             backup_all(&cli.volumes_root, storage.as_mut())?;
@@ -427,6 +435,17 @@ fn restore_volume(
 fn backup_all(volumes_root: &Path, storage: &mut dyn Storage) -> Result<()> {
     for volume in discover_volumes(volumes_root)? {
         backup_volume(volumes_root, storage, &volume)?;
+    }
+    Ok(())
+}
+
+fn restore_all(
+    volumes_root: &Path,
+    storage: &mut dyn Storage,
+    archive: Option<&str>,
+) -> Result<()> {
+    for volume in discover_volumes(volumes_root)? {
+        restore_volume(volumes_root, storage, &volume, archive)?;
     }
     Ok(())
 }
@@ -736,5 +755,36 @@ mod tests {
     #[test]
     fn five_field_cron_is_accepted() {
         parse_schedule("0 1 * * *").unwrap();
+    }
+
+    #[test]
+    fn restore_all_restores_each_discovered_volume() {
+        let temp = tempfile::tempdir().unwrap();
+        let volumes_root = temp.path().join("volumes");
+        let backups_root = temp.path().join("backups");
+        let app_volume = volumes_root.join("app");
+        let media_volume = volumes_root.join("media");
+
+        fs::create_dir_all(&app_volume).unwrap();
+        fs::create_dir_all(&media_volume).unwrap();
+        fs::write(app_volume.join("state.txt"), "old app").unwrap();
+        fs::write(media_volume.join("state.txt"), "old media").unwrap();
+
+        let mut storage = LocalStorage::new(backups_root);
+        backup_all(&volumes_root, &mut storage).unwrap();
+
+        fs::write(app_volume.join("state.txt"), "new app").unwrap();
+        fs::write(media_volume.join("state.txt"), "new media").unwrap();
+
+        restore_all(&volumes_root, &mut storage, None).unwrap();
+
+        assert_eq!(
+            fs::read_to_string(app_volume.join("state.txt")).unwrap(),
+            "old app"
+        );
+        assert_eq!(
+            fs::read_to_string(media_volume.join("state.txt")).unwrap(),
+            "old media"
+        );
     }
 }
