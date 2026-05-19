@@ -137,9 +137,13 @@ volumes:
 Run restore as a one-off container. The destination volume must be writable for restore.
 
 ```sh
+# The cap-add entries are only needed for restore when preserving ownership and metadata.
 docker run --rm \
   --read-only \
   --cap-drop ALL \
+  --cap-add CHOWN \
+  --cap-add FOWNER \
+  --cap-add DAC_OVERRIDE \
   --security-opt no-new-privileges:true \
   -e STORAGE_DRIVER=local \
   -e LOCAL_STORAGE_ROOT=/backups \
