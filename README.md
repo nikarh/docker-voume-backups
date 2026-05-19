@@ -67,7 +67,7 @@ This example backs up two read-only volumes into a writable local backup volume.
 ```yaml
 services:
   backup:
-    image: ghcr.io/nikarh/fileserver-backup:latest
+    image: ghcr.io/nikarh/docker-voume-backups:latest
     user: "65532:65532"
     read_only: true
     cap_drop:
@@ -102,7 +102,7 @@ This example streams backups to SFTP using an SSH private key mounted as a Docke
 ```yaml
 services:
   backup:
-    image: ghcr.io/nikarh/fileserver-backup:latest
+    image: ghcr.io/nikarh/docker-voume-backups:latest
     user: "65532:65532"
     read_only: true
     cap_drop:
@@ -148,6 +148,6 @@ docker run --rm \
   -e LOCAL_STORAGE_ROOT=/backups \
   -v app-data:/volumes/app-data:rw \
   -v backup-data:/backups:ro \
-  ghcr.io/nikarh/fileserver-backup:latest \
+  ghcr.io/nikarh/docker-voume-backups:latest \
   restore app-data
 ```
