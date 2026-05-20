@@ -174,3 +174,10 @@ docker run --rm \
   ghcr.io/nikarh/docker-volume-backups:latest \
   restore-all
 ```
+
+## License
+
+This project is licensed under either of:
+
+- [MIT License](LICENSE-MIT)
+- [Apache License, Version 2.0](LICENSE-APACHE)
